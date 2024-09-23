@@ -19,9 +19,10 @@ def read_pdf(file_path):
             pdf_text += page.extract_text()
     return pdf_text
 
-# Function to query GPT-3.5 Turbo
+# Function to query GPT with the new API (Version 1.0.0 and above)
 def query_gpt_turbo(question, context):
-    response = openai.ChatCompletion.create(
+    # Call the OpenAI API to get a response from GPT
+    response = openai.completions.create(
         model="gpt-3.5-turbo",
         messages=[
             {"role": "system", "content": "You are a helpful assistant."},
@@ -30,7 +31,7 @@ def query_gpt_turbo(question, context):
         max_tokens=4096,
         temperature=0.5
     )
-    return response.choices[0].message['content']
+    return response['choices'][0]['message']['content']
 
 # Streamlit app
 st.markdown("<h1 style='text-align: center;'>BOUSST AI PORTAL</h1>", unsafe_allow_html=True)
