@@ -1,34 +1,65 @@
-function updateAnalogClock() {
-    const hourHand = document.querySelector('.hour-hand');
-    const minuteHand = document.querySelector('.minute-hand');
-    const secondHand = document.querySelector('.second-hand');
+import openai
+import PyPDF2
+import streamlit as st
+import os
+from dotenv import load_dotenv
 
-    const now = new Date();
-    const seconds = now.getSeconds();
-    const minutes = now.getMinutes();
-    const hours = now.getHours();
+# Load environment variables from .env file
+load_dotenv()
 
-    const secondDeg = ((seconds / 60) * 360) + 90; // 90 degrees offset
-    const minuteDeg = ((minutes / 60) * 360) + ((seconds / 60) * 6) + 90; // +90 degrees offset
-    const hourDeg = ((hours / 12) * 360) + ((minutes / 60) * 30) + 90; // +90 degrees offset
+# Setup OpenAI API Key from the environment variable
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
-    secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
-    minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
-    hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
-}
+# Function to read PDF and extract text
+def read_pdf(file_path):
+    pdf_text = ""
+    with open(file_path, 'rb') as file:
+        reader = PyPDF2.PdfReader(file)
+        for page in reader.pages:
+            pdf_text += page.extract_text()
+    return pdf_text
 
-function updateDigitalClock() {
-    const now = new Date();
-    const digitalClock = document.getElementById('digital-clock');
-    digitalClock.innerText = now.toLocaleTimeString();
-}
+# Function to query GPT-3.5 Turbo
+def query_gpt_turbo(question, context):
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": f"{question}\n\n{context}"}
+        ],
+        max_tokens=4096,
+        temperature=0.5
+    )
+    return response.choices[0].message['content']
 
-// Update clocks every second
-setInterval(() => {
-    updateAnalogClock();
-    updateDigitalClock();
-}, 1000);
+# Streamlit app
+st.markdown("<h1 style='text-align: center;'>BOUSST AI PORTAL</h1>", unsafe_allow_html=True)
 
-// Initial calls
-updateAnalogClock();
-updateDigitalClock();
+# Ask for a question
+question = st.text_input("Enter your question")
+
+# PDF file path (set the path to your PDF file)
+pdf_file_path = 'cse.pdf'
+pdf_text = read_pdf(pdf_file_path)
+
+# Automatically provide the answer when the user presses Enter
+if question:
+    with st.spinner("Searching..."):
+        start = 0
+        answer_found = False
+        while start < len(pdf_text):
+            chunk = pdf_text[start:start + 4000]
+            answer = query_gpt_turbo(question, chunk)
+
+            if "not available" not in answer.lower():
+                st.write(answer)
+                answer_found = True
+                break
+
+            start += 4000
+
+        if not answer_found:
+            st.write("Sorry, I couldn't find that in the PDF. Here is a general answer to your question.")
+
+if not question:
+    st.info("Please enter a question to get started.")
