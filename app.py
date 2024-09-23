@@ -2,10 +2,10 @@ import openai
 import PyPDF2
 import streamlit as st
 import os
-from dotenv import load_dotenv
+#from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+#load_dotenv()
 
 # Setup OpenAI API Key from the environment variable
 openai.api_key = os.getenv("OPENAI_API_KEY")
