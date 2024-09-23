@@ -1,9 +1,15 @@
 import openai
 import PyPDF2
 import streamlit as st
+import os
+from dotenv import load_dotenv
 
-# Set up OpenAI API key
-openai.api_key = "YOUR_OPENAI_API_KEY"  # Replace with your OpenAI API key
+# Load environment variables from .env file
+load_dotenv()
+
+# Setup OpenAI API Key from the environment variable
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 # Function to read PDF and extract text
 def read_pdf(file_path):
