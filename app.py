@@ -1,16 +1,14 @@
 import os
 import requests
 import PyPDF2
-from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
 # Constants
 GEMINI_API_KEY = os.environ.get("MY_GEMINI_API_KEY")  # Securely use the environment variable
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + GEMINI_API_KEY
 PDF_FILE_PATH = "cse.pdf"  # Update with your PDF path
-BOU_URL = "https://www.bou.ac.bd"
 
 # Extract text from PDF
 def extract_pdf_text(file_path):
@@ -27,46 +25,36 @@ pdf_text = extract_pdf_text(PDF_FILE_PATH)
 # Function to query Google Gemini
 def query_gemini(query):
     payload = {
-        "contents": [{"parts": [{"text": query}]}]  # Adjust the payload structure
+        "contents": [{"parts": [{"text": query}]}]
     }
-
-    # Send request to Gemini API
-    response = requests.post(GEMINI_API_URL, json=payload, params={"key": GEMINI_API_KEY})
-    
+    headers = {
+        "Content-Type": "application/json"
+    }
+    response = requests.post(GEMINI_API_URL, json=payload, headers=headers)
     if response.status_code == 200:
-        return response.json().get("answer", "No answer found.")
+        return response.json().get("answer")
     else:
         return f"Error: {response.status_code}, {response.text}"
-
-# Web scrape function
-def scrape_bou_website(query):
-    response = requests.get(BOU_URL)
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.content, "html.parser")
-        results = soup.find_all(string=lambda text: query.lower() in text.lower())
-        return results[0] if results else "No relevant information found on the BOU website."
-    else:
-        return "Failed to access BOU website."
 
 # Flask API endpoint
 @app.route('/ask', methods=['POST'])
 def ask_question():
     query = request.json.get("query")
-    answer = answer_question(query)
+    
+    # Check if the query is related to the PDF text
+    if query in pdf_text:
+        answer = query_gemini(query)  # Get answer from Gemini using the query
+    else:
+        answer = "I'm sorry, but I couldn't find the information you requested in the document."
+
+    # Save the answer for future requests (optional, depending on your use case)
+    save_answer(query, answer)
+    
     return jsonify({"answer": answer})
 
-# Main function to handle the question
-def answer_question(query):
-    answer = query_gemini(query)
-    
-    if "No answer found" in answer:
-        bou_answer = scrape_bou_website(query)
-        if bou_answer != "No relevant information found on the BOU website.":
-            return bou_answer
-        else:
-            return "No relevant information found."
-    
-    return answer
+def save_answer(query, answer):
+    # Implement logic to save the answer to a database or file for future retrieval
+    pass
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))  # Get the port from environment variable or use 5000
