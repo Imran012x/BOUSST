@@ -7,7 +7,7 @@ import os
 app = Flask(__name__)
 
 # Constants
-GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"  # Use a secure method for handling API keys
+GEMINI_API_KEY = "MY_GEMINI_API_KEY"  # Use a secure method for handling API keys
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=GEMINI_API_KEY"
 PDF_FILE_PATH = "cse.pdf"  # Update with your PDF path
 BOU_URL = "https://www.bou.ac.bd"
