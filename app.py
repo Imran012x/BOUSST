@@ -8,7 +8,7 @@ app = Flask(__name__)
 
 # Constants
 GEMINI_API_KEY = os.environ.get("MY_GEMINI_API_KEY")  # Securely use the environment variable
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + GEMINI_API_KEY
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
 PDF_FILE_PATH = "cse.pdf"  # Update with your PDF path
 BOU_URL = "https://www.bou.ac.bd"
 
@@ -25,19 +25,16 @@ def extract_pdf_text(file_path):
 pdf_text = extract_pdf_text(PDF_FILE_PATH)
 
 # Function to query Google Gemini
-def query_gemini(query, pdf_text=None):
+def query_gemini(query):
     payload = {
-        "query": query,
-        "context": pdf_text
+        "contents": [{"parts": [{"text": query}]}]  # Adjust the payload structure
     }
-    headers = {
-        "key":{GEMINI_API_KEY}",
-        #"Authorization": f"Bearer {GEMINI_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    response = requests.post(GEMINI_API_URL, json=payload, headers=headers)
+
+    # Send request to Gemini API
+    response = requests.post(GEMINI_API_URL, json=payload, params={"key": GEMINI_API_KEY})
+    
     if response.status_code == 200:
-        return response.json().get("answer")
+        return response.json().get("answer", "No answer found.")
     else:
         return f"Error: {response.status_code}, {response.text}"
 
@@ -60,14 +57,15 @@ def ask_question():
 
 # Main function to handle the question
 def answer_question(query):
-    answer = query_gemini(query, pdf_text)
+    answer = query_gemini(query)
     
     if "No answer found" in answer:
         bou_answer = scrape_bou_website(query)
         if bou_answer != "No relevant information found on the BOU website.":
             return bou_answer
         else:
-            return query_gemini(query)
+            return "No relevant information found."
+    
     return answer
 
 if __name__ == '__main__':
