@@ -1,14 +1,14 @@
+import os
 import requests
 import PyPDF2
 from bs4 import BeautifulSoup
 from flask import Flask, request, jsonify
-import os
 
 app = Flask(__name__)
 
 # Constants
-GEMINI_API_KEY = "MY_GEMINI_API_KEY"  # Use a secure method for handling API keys
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=GEMINI_API_KEY"
+GEMINI_API_KEY = os.environ.get("MY_GEMINI_API_KEY")  # Securely use the environment variable
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + GEMINI_API_KEY
 PDF_FILE_PATH = "cse.pdf"  # Update with your PDF path
 BOU_URL = "https://www.bou.ac.bd"
 
@@ -70,5 +70,5 @@ def answer_question(query):
     return answer
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
+    port = int(os.environ.get("PORT", 5000))  # Get the port from environment variable or use 5000
+    app.run(host='0.0.0.0', port=port)
