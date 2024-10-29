@@ -31,7 +31,8 @@ def query_gemini(query, pdf_text=None):
         "context": pdf_text
     }
     headers = {
-        "Authorization": f"Bearer {GEMINI_API_KEY}",
+        "key":{GEMINI_API_KEY}",
+        #"Authorization": f"Bearer {GEMINI_API_KEY}",
         "Content-Type": "application/json"
     }
     response = requests.post(GEMINI_API_URL, json=payload, headers=headers)
