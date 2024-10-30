@@ -69,7 +69,7 @@ def ask_question():
     #if query in pdf_text:
         #answer = f"Found in PDF: The information related to your query '{query}' is available in the document."
     #else:
-        answer = query_gemini(query)  # Get answer from Gemini using the query
+    answer = query_gemini(query)  # Get answer from Gemini using the query
 
     # Optionally save the answer for future requests
     save_answer(query, answer)
