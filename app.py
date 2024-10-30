@@ -7,7 +7,7 @@ app = Flask(__name__)
 
 # Constants
 GEMINI_API_KEY = os.environ.get("MY_GEMINI_API_KEY")  # Securely use the environment variable
-GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + GEMINI_API_KEY
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"  # API URL
 PDF_FILE_PATH = "cse.pdf"  # Update with your PDF path
 
 # Extract text from PDF
@@ -28,7 +28,7 @@ def query_gemini(query):
         "contents": [{"parts": [{"text": query}]}]
     }
     headers = {
-        "Content-Type": "application/json"
+        "key": GEMINI_API_KEY  # Only include the API key in the headers
     }
     response = requests.post(GEMINI_API_URL, json=payload, headers=headers)
     if response.status_code == 200:
