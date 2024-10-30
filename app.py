@@ -40,14 +40,14 @@ def query_gemini(query):
 @app.route('/ask', methods=['POST'])
 def ask_question():
     query = request.json.get("query")
-    
+
     # Check if the query is related to the PDF text
     if query in pdf_text:
         answer = query_gemini(query)  # Get answer from Gemini using the query
     else:
         answer = "I'm sorry, but I couldn't find the information you requested in the document."
 
-    # Save the answer for future requests (optional, depending on your use case)
+    # Optionally save the answer for future requests
     save_answer(query, answer)
     
     return jsonify({"answer": answer})
