@@ -24,6 +24,11 @@ pdf_text = extract_pdf_text(PDF_FILE_PATH)
 
 # Function to query Google Gemini
 def query_gemini(query):
+      combined_query = (
+        f"Here is the text from the PDF: {pdf_text}\n\n"
+        f"User Query: {query}\n"
+        "Please analyze the PDF text and provide an answer based on the content."
+    )
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_API_KEY}"
     headers = {
         "Content-Type": "application/json"
@@ -33,7 +38,7 @@ def query_gemini(query):
             {
                 "parts": [
                     {
-                        "text": query
+                        "text": combined_query
                     }
                 ]
             }
@@ -43,22 +48,26 @@ def query_gemini(query):
     try:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()  # Check for HTTP errors
-        result = response.json().get("answer", "No response text received.")
+        result = response.json()
+        print("Full API response:", json.dumps(result, indent=2))
         return result
     except requests.exceptions.RequestException as e:
         return f"Error: {e}"
 
-
+#root endpoint
+@app.route('/')
+def index():
+    return "Welcome to the Project"
 # Flask API endpoint
 @app.route('/ask', methods=['POST'])
 def ask_question():
     query = request.json.get("query")
 
     # Check if the query is related to the PDF text
-    if query in pdf_text:
+    #if query in pdf_text:
         answer = query_gemini(query)  # Get answer from Gemini using the query
-    else:
-        answer = "I'm sorry, but I couldn't find the information you requested in the document."
+    #else:
+        #answer = "I'm sorry, but I couldn't find the information you requested in the document."
 
     # Optionally save the answer for future requests
     save_answer(query, answer)
