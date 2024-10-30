@@ -24,17 +24,30 @@ pdf_text = extract_pdf_text(PDF_FILE_PATH)
 
 # Function to query Google Gemini
 def query_gemini(query):
-    payload = {
-        "contents": [{"parts": [{"text": query}]}]
-    }
+    url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_API_KEY}"
     headers = {
-        "key": GEMINI_API_KEY  # Only include the API key in the headers
+        "Content-Type": "application/json"
     }
-    response = requests.post(GEMINI_API_URL, json=payload, headers=headers)
-    if response.status_code == 200:
-        return response.json().get("answer")
-    else:
-        return f"Error: {response.status_code}, {response.text}"
+    data = {
+        "contents": [
+            {
+                "parts": [
+                    {
+                        "text": query
+                    }
+                ]
+            }
+        ]
+    }
+    
+    try:
+        response = requests.post(url, json=data, headers=headers)
+        response.raise_for_status()  # Check for HTTP errors
+        result = response.json().get("answer", "No response text received.")
+        return result
+    except requests.exceptions.RequestException as e:
+        return f"Error: {e}"
+
 
 # Flask API endpoint
 @app.route('/ask', methods=['POST'])
