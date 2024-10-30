@@ -28,8 +28,7 @@ def query_gemini(query):
     combined_query = (
         f"Here is the text from the PDF: {pdf_text}\n\n"
         f"User Query: {query}\n"
-        "Please analyze the PDF text and provide an answer based on the content.When You will answer as like you are the head of the info center 
-        of bou(bangladesh open university,so donot give any initial talk like the pdf has this or that.Direct talk as like you are answering face to face ."
+        "Please analyze the PDF text and provide an answer based on the content.When You will answer as like you are the head of the info center of bou(bangladesh open university,so donot give any initial talk like the pdf has this or that.Direct talk as like you are answering face to face ."
     )
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={GEMINI_API_KEY}"
     headers = {
