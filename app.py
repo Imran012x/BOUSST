@@ -1,6 +1,7 @@
 import os
 import requests
 import PyPDF2
+import json  # Added import statement for json
 from flask import Flask, request, jsonify
 
 app = Flask(__name__)
@@ -16,7 +17,7 @@ def extract_pdf_text(file_path):
     with open(file_path, 'rb') as file:
         pdf_reader = PyPDF2.PdfReader(file)
         for page in pdf_reader.pages:
-            pdf_text += page.extract_text()
+            pdf_text += page.extract_text() or ""  # Ensure we don't add None if extract_text() fails
     return pdf_text
 
 # Save PDF text for future access
@@ -24,7 +25,7 @@ pdf_text = extract_pdf_text(PDF_FILE_PATH)
 
 # Function to query Google Gemini
 def query_gemini(query):
-      combined_query = (
+    combined_query = (
         f"Here is the text from the PDF: {pdf_text}\n\n"
         f"User Query: {query}\n"
         "Please analyze the PDF text and provide an answer based on the content."
@@ -44,7 +45,7 @@ def query_gemini(query):
             }
         ]
     }
-    
+
     try:
         response = requests.post(url, json=data, headers=headers)
         response.raise_for_status()  # Check for HTTP errors
@@ -54,24 +55,25 @@ def query_gemini(query):
     except requests.exceptions.RequestException as e:
         return f"Error: {e}"
 
-#root endpoint
+# Root endpoint
 @app.route('/')
 def index():
     return "Welcome to the Project"
+
 # Flask API endpoint
 @app.route('/ask', methods=['POST'])
 def ask_question():
     query = request.json.get("query")
 
-    # Check if the query is related to the PDF text
+    # Check if the query is found in the PDF text
     #if query in pdf_text:
-        answer = query_gemini(query)  # Get answer from Gemini using the query
+        #answer = f"Found in PDF: The information related to your query '{query}' is available in the document."
     #else:
-        #answer = "I'm sorry, but I couldn't find the information you requested in the document."
+        answer = query_gemini(query)  # Get answer from Gemini using the query
 
     # Optionally save the answer for future requests
     save_answer(query, answer)
-    
+
     return jsonify({"answer": answer})
 
 def save_answer(query, answer):
