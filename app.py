@@ -7,7 +7,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-@app.route('/ask', methods=['POST'])
+@app.route('/ask', methods=['GET'])
 def ask_question():
     try:
         data = request.json  # Get the JSON data from the request
