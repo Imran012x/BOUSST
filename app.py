@@ -1,22 +1,24 @@
 from flask import Flask, request, jsonify
-from gemini_api import query_gemini  # Import the query function
+from dotenv import load_dotenv
+import os
+import gemini  # Import the gemini module for querying
+
+load_dotenv()
 
 app = Flask(__name__)
 
-# Root endpoint
-@app.route('/')
-def index():
-    return "Welcome to the Project"
-
-# Flask API endpoint for asking questions
-@app.route('/ask', methods=['GET'])
+@app.route('/ask', methods=['POST'])
 def ask_question():
-    query = request.json.get("query")
-    answer = query_gemini(query)  # Call the Gemini API through the query function
-    return jsonify({"answer": answer})
+    try:
+        data = request.json  # Get the JSON data from the request
+        query = data['contents'][0]['parts'][0]['text']
+        result = gemini.query_gemini(query)  # Use the query_gemini function from gemini.py
+        return jsonify(result)
+    except KeyError as e:
+        return jsonify({"error": f"Missing key: {str(e)}"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
-# Ensure the app runs only when called directly
 if __name__ == '__main__':
-    import os
-    port = int(os.environ.get("PORT", 5000))  # Get the port from environment variable or use 5000
-    app.run(host='0.0.0.0', port=port)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port,debug=True)
