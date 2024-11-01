@@ -9,7 +9,7 @@ def index():
     return "Welcome to the Project"
 
 # Flask API endpoint for asking questions
-@app.route('/ask', methods=['POST'])
+@app.route('/ask', methods=['GET'])
 def ask_question():
     query = request.json.get("query")
     answer = query_gemini(query)  # Call the Gemini API through the query function
