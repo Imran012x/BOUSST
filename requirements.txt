@@ -3,5 +3,5 @@ requests
 PyPDF2
 beautifulsoup4
 gunicorn
-
+python-dotenv
 
