@@ -4,7 +4,7 @@ import PyPDF2
 
 # Constants
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent"
-GEMINI_API_KEY = os.getenv("MY_GEMINI_API_KEY")  # Get the API key from environment variable
+GEMINI_API_KEY = os.getenv("my_gemini_key")  # Get the API key from environment variable
 PDF_FILE_PATH = "cse.pdf"  # Update this with the actual PDF file path
 
 # Extract text from PDF
