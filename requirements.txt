@@ -5,3 +5,4 @@ flask-cors
 requests
 beautifulsoup4
 openai
+PyMuPDF
