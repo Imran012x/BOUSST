@@ -8,7 +8,7 @@ CORS(app)
 
 # Replace with your Hugging Face token (free to create)
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-llm-7b-chat"
-HUGGINGFACE_TOKEN = "your_huggingface_api_token_here"
+HUGGINGFACE_TOKEN = "token_hf"
 
 HEADERS = {
     "Authorization": f"Bearer {HUGGINGFACE_TOKEN}"
