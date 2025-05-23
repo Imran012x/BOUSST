@@ -1,66 +1,55 @@
-import openai
-import PyPDF2
-import streamlit as st
-import os
-#from dotenv import load_dotenv
+from flask import Flask, request, jsonify
+from flask_cors import CORS
+import requests
+from bs4 import BeautifulSoup
 
-# Load environment variables from .env file
-#load_dotenv()
+app = Flask(__name__)
+CORS(app)
 
-# Setup OpenAI API Key from the environment variable
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# Replace with your Hugging Face token (free to create)
+HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-llm-7b-chat"
+HUGGINGFACE_TOKEN = "your_huggingface_api_token_here"
 
-# Function to read PDF and extract text
-def read_pdf(file_path):
-    pdf_text = ""
-    with open(file_path, 'rb') as file:
-        reader = PyPDF2.PdfReader(file)
-        for page in reader.pages:
-            pdf_text += page.extract_text()
-    return pdf_text
+HEADERS = {
+    "Authorization": f"Bearer {HUGGINGFACE_TOKEN}"
+}
 
-# Function to query GPT with the new API (Version 1.0.0 and above)
-def query_gpt_turbo(question, context):
-    # Call the OpenAI API to get a response from GPT
-    response = openai.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are a helpful assistant."},
-            {"role": "user", "content": f"{question}\n\n{context}"}
-        ],
-        max_tokens=4096,
-        temperature=0.5
-    )
-    return response['choices'][0]['message']['content']
+FIXED_URLS = [
+    "https://www.bou.ac.bd/",
+    "https://bousst.edu.bd/"
+]
 
-# Streamlit app
-st.markdown("<h1 style='text-align: center;'>BOUSST AI PORTAL</h1>", unsafe_allow_html=True)
+def scrape_sites():
+    all_text = ""
+    for url in FIXED_URLS:
+        try:
+            response = requests.get(url, timeout=10)
+            soup = BeautifulSoup(response.text, 'html.parser')
+            text = soup.get_text(separator=' ')
+            all_text += text + "\n\n"
+        except Exception as e:
+            print(f"Error scraping {url}: {e}")
+    return all_text[:3000]  # Limit to 3000 chars
 
-# Ask for a question
-question = st.text_input("Enter your question")
+def ask_deepseek(context, question):
+    payload = {
+        "inputs": f"Context: {context}\n\nQuestion: {question}",
+        "parameters": {"max_new_tokens": 300}
+    }
+    res = requests.post(HUGGINGFACE_API_URL, headers=HEADERS, json=payload)
+    result = res.json()
+    if isinstance(result, list):
+        return result[0]["generated_text"].split("Question:")[-1].strip()
+    else:
+        return "DeepSeek error or rate limit."
 
-# PDF file path (set the path to your PDF file)
-pdf_file_path = 'cse.pdf'
-pdf_text = read_pdf(pdf_file_path)
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    question = data.get("question", "")
+    context = scrape_sites()
+    answer = ask_deepseek(context, question)
+    return jsonify({"answer": answer})
 
-# Automatically provide the answer when the user presses Enter
-if question:
-    with st.spinner("Searching..."):
-        start = 0
-        answer_found = False
-        while start < len(pdf_text):
-            chunk = pdf_text[start:start + 4000]
-            answer = query_gpt_turbo(question, chunk)
-
-            if "not available" not in answer.lower():
-                st.write(answer)
-                answer_found = True
-                break
-
-            start += 4000
-
-        if not answer_found:
-            st.write("Sorry, I couldn't find that in the PDF. Here is a general answer to your question.")
-
-if not question:
-    st.info("Please enter a question to get started.")
+if __name__ == '__main__':
+    app.run(debug=True)
