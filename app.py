@@ -10,7 +10,7 @@ app = Flask(__name__)
 CORS(app)
 
 # Gemini API key
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+GEMINI_API_KEY = os.environ.get("token_gemini")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not set")
 
