@@ -9,7 +9,7 @@ CORS(app)
 
 # Hugging Face API setup
 HUGGINGFACE_API_URL = "https://api-inference.huggingface.co/models/deepseek-ai/deepseek-llm-7b-chat"
-HUGGINGFACE_TOKEN = os.getenv("HUGGINGFACE_TOKEN")
+HUGGINGFACE_TOKEN = os.getenv("token_hf")
 
 if not HUGGINGFACE_TOKEN:
     raise ValueError("HUGGINGFACE_TOKEN environment variable not set")
