@@ -1,10 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
+import os
 import requests
 from bs4 import BeautifulSoup
-import os
 import fitz  # PyMuPDF
-import re
 
 app = Flask(__name__)
 CORS(app)
@@ -16,13 +15,7 @@ if not GEMINI_API_KEY:
 
 GEMINI_ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
-# Fixed URLs to scrape
-FIXED_URLS = [
-    "https://www.bou.ac.bd/",
-    "https://bousst.edu.bd/"
-]
-
-# Extract text from PDF
+# Function to extract text from PDF
 def extract_pdf_text(pdf_path="cse.pdf", max_chars=3000):
     try:
         doc = fitz.open(pdf_path)
@@ -34,11 +27,18 @@ def extract_pdf_text(pdf_path="cse.pdf", max_chars=3000):
         print(f"Error reading PDF: {e}")
         return ""
 
-# Scrape websites
+# (Commented) Web scraping logic
+"""
+# Fixed URLs to scrape
+FIXED_URLS = [
+    "https://www.bou.ac.bd/",
+    "https://bousst.edu.bd/"
+]
+
 def scrape_sites():
     all_text = ""
     headers = {
-        "User-Agent": "Mozilla/5.0"
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/91.0 Safari/537.36"
     }
     for url in FIXED_URLS:
         try:
@@ -49,11 +49,18 @@ def scrape_sites():
         except Exception as e:
             print(f"Error scraping {url}: {e}")
     return all_text[:3000]
+"""
 
-# Ask Gemini
+# Ask Gemini with PDF context
 def ask_gemini(context, question):
     try:
-        prompt = f"You are an agent of BOUSST Info Center. Use the following information to answer:\n\n{context}\n\nQuestion: {question}"
+        prompt = (
+            f"You are an informative assistant from the BOUSST Info Center. "
+            f"Use the following information to answer the question in a helpful and clear way.\n\n"
+            f"{context}\n\n"
+            f"Question: {question}"
+        )
+
         payload = {
             "contents": [
                 {
@@ -63,6 +70,7 @@ def ask_gemini(context, question):
                 }
             ]
         }
+
         response = requests.post(
             GEMINI_ENDPOINT,
             headers={"Content-Type": "application/json"},
@@ -83,12 +91,9 @@ def ask():
     if not question:
         return jsonify({"answer": "Please provide a question."})
 
-    pdf_context = extract_pdf_text()
-    web_context = scrape_sites()
-
-    # Combine both PDF and web context
-    full_context = f"{pdf_context}\n\n{web_context}"
-    answer = ask_gemini(full_context, question)
+    context = extract_pdf_text()
+    # Optionally add scraped content: context += scrape_sites()
+    answer = ask_gemini(context, question)
     return jsonify({"answer": answer})
 
 if __name__ == '__main__':
