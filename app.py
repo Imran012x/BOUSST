@@ -8,9 +8,10 @@ app = Flask(__name__)
 CORS(app)
 
 # Gemini API key
-GEMINI_API_KEY = "token_gemini"  # Replace with your real API key
+GEMINI_API_KEY = os.environ.get("token_gemini")
 if not GEMINI_API_KEY:
     raise ValueError("GEMINI_API_KEY not set")
+
 
 GEMINI_ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
