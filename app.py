@@ -16,13 +16,18 @@ if not GEMINI_API_KEY:
 GEMINI_ENDPOINT = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
 # Function to extract text from PDF
-def extract_pdf_text(pdf_path="cse.pdf", max_chars=3000):
+def extract_pdf_text(pdf_path="cse.pdf"):
     try:
         doc = fitz.open(pdf_path)
         text = ""
         for page in doc:
             text += page.get_text()
-        return text[:max_chars].strip()
+        # Remove excessive whitespace and clean the text
+        text = " ".join(text.split())
+        # Note: Gemini API has a token limit (e.g., ~1M tokens for Gemini 2.0 Flash).
+        # If text is too long, you may need to truncate or chunk it.
+        # For now, send full text unless API limit is hit.
+        return text
     except Exception as e:
         print(f"Error reading PDF: {e}")
         return ""
@@ -55,9 +60,13 @@ def scrape_sites():
 def ask_gemini(context, question):
     try:
         prompt = (
-            f"You are an informative assistant from the BOUSST Info Center. "
-            f"Use the following information to answer the question in a helpful and clear way.\n\n"
-            f"{context}\n\n"
+            f"You are a professional and knowledgeable agent from the BOUSST Info Center. "
+            f"Your role is to provide accurate, clear, and helpful answers to users' questions about BOUSST, "
+            f"acting as if you are directly representing the institution. Do not mention or reference any specific documents, PDFs, or sources in your response. "
+            f"Instead, answer conversationally and authoritatively as if you have direct access to all relevant BOUSST information. "
+            f"If you cannot find the answer to the question in the provided information, respond with: 'I am sorry, I cannot provide the info right now.' "
+            f"Use a friendly and professional tone, and avoid technical jargon unless necessary.\n\n"
+            f"Context (for your reference only, do not mention in response):\n{context}\n\n"
             f"Question: {question}"
         )
 
