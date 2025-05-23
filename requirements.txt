@@ -1,4 +1,4 @@
-streamlit
-openai
-PyPDF2
-python-dotenv
+flask
+flask-cors
+requests
+beautifulsoup4
